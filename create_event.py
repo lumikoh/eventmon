@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 from cal_setup import get_calendar_service
 
@@ -11,7 +12,9 @@ def create_event(summary, description, start, end):
     end = end.isoformat()
     # end = (tomorrow + timedelta(hours=1)).isoformat()
 
-    event_result = service.events().insert(calendarId='25f27666ccf3e36f503d346826b32c4ce2a7d06c675732b98b83198989911c22@group.calendar.google.com',
+    c_id = json.load(open('config.json'))["calendar_id"]
+
+    event_result = service.events().insert(calendarId=c_id,
         body={
             "summary": summary,
             "description": description,
