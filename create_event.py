@@ -1,20 +1,32 @@
 import json
 import smtplib
 from cal_setup import get_calendar_service
+import datetime
 
 
 def create_event(summary, description, start, end):
     service = get_calendar_service()
-
-    start = start.isoformat()
-    end = end.isoformat()
 
     config = json.load(open('config.json'))
 
     c_id = config["calendar_id"]
     email = config["email"]
     password = config["password"]
+
+    time_change = datetime.timedelta(minutes=180)
+    change = start - time_change
+
+    start = start.isoformat()
+    end = end.isoformat()
+
+    events_list = service.events().list(calendarId=c_id, 
+                                        timeMin=change.isoformat()+"Z").execute()
+
     date_string = str(start).replace("T", " ")[:-3]
+
+    for event in events_list["items"]:
+        if(event["summary"] == summary):
+            return
 
     event_result = service.events().insert(calendarId=c_id,
         body={
@@ -34,8 +46,8 @@ def create_event(summary, description, start, end):
             msg=f"Subject:Event created: {date_string} {summary}\n\n{summary}\n{date_string}\n{description}".replace("\u00e9", "e").replace("ä", "a").replace("ö", "o").replace("Ö", "O").replace("Ä", "A").encode().decode('ascii', errors='ignore')
         )
 
-    print("created event")
-    print("id: ", event_result['id'])
-    print("summary: ", event_result['summary'])
-    print("starts at: ", event_result['start']['dateTime'])
-    print("ends at: ", event_result['end']['dateTime'], "\n")
+    print("-----------------------------------------------------------------")
+    print("  Created event:")
+    print("    id: ", event_result['id'])
+    print("    summary: ", event_result['summary'])
+    print("-----------------------------------------------------------------\n")

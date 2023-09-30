@@ -5,10 +5,21 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from create_event import create_event
 from datetime_parser import string_to_datetime
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from datetime import datetime
+import os
 
 LOCATION_FILE = 'config.json'
-CREATED_FILE = 'created.json'
 
+types = [
+        "&filters=league_cup",
+        "&filters=league_challenge",
+        "&filters=prerelease",
+        "&filters=premier_challenge",
+        "&filters=midseason_showdown",
+        "&filters=league"
+]
     
 def get_elements_wait(element, selector, property):
     for i in range(10):
@@ -46,22 +57,6 @@ def get_website(element):
     return ""
 
 
-def add_created(name,date,address):
-    with open(CREATED_FILE, 'r+') as file:
-        eventstring =  f"{str(date)}" + "|" + f"{name:<10}"[:10] + "|" + f"{address:<10}"[:10]
-        
-        json_data = json.load(file)
-
-        if eventstring in json_data["created"]:
-            return False
-
-        json_data["created"].append(eventstring)
-
-        file.seek(0)
-        json.dump(json_data, file, indent=4)
-        return True
-
-
 def get_data(element):
     card = get_elements_wait(element, By.ID, "league-detail-view")
     if card is None:
@@ -78,20 +73,26 @@ def get_data(element):
 
     description = location + "\n" + address + "\n" + website
 
-    if add_created(name,date,address):
+    try:
         create_event(name, description, date, date)
+    except:
+        print("Error: Something went wrong.")
+
 
 
 def open_location(driver, location, country):
-    driver.get("https://events.pokemon.com/en-us/events?near=" + location)  
+    driver.get("https://events.pokemon.com/en-us/" + location)  
 
     data = get_elements_wait(driver, By.CLASS_NAME, "card-holder")
 
     if data is None:
         return
+    
+    i = 0
 
-    for i in range(len(data)):
+    while True:
         list = get_elements_wait(driver, By.CLASS_NAME, "card-holder")
+        time.sleep(1)
 
         if len(list) < i+1:
             break
@@ -110,22 +111,42 @@ def open_location(driver, location, country):
 
         button[0].click()
         time.sleep(0.5)
+        i += 1
 
 
 def main():
 
+    os.system("cls") # Change for Linux/MacOS
+
+    print("\nCrawling Pokemon events.... ")
+
+    start = datetime.now()
+
     options = Options()
-    options.add_argument('--headless')
-    driver = webdriver.Firefox(options=options)  
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    
+    #options.add_argument("no-sandbox")
+
+    options.add_argument("start-maximized")
+    options.add_argument(
+    "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36")
+    driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)  
 
     data = open(LOCATION_FILE)
     json_data = json.load(data)
 
     country = json_data["country"]
     for location in json_data["locations"]:
-        open_location(driver, location, country)
+        for type in types:
+            open_location(driver, location+type, country)
 
     driver.close()  
+
+    end = datetime.now()
+    duration = start-end
+    print(duration)
 
 
 if __name__ == "__main__":
