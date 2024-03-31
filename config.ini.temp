@@ -1,9 +1,0 @@
-# Template config file, rename this to config.ini and add your own information.
-
-# Database
-[db]
-hostname = localhost
-username = postgres
-password = password
-database = db
-port     = 5432
