@@ -1,9 +1,16 @@
 import psycopg2
 import psycopg2.extras
 import configparser
-from bs4 import BeautifulSoup
+import requests
+import json
 
 configFilePath = './config.ini'
+
+def getFromLocation(url):
+    response_API = requests.get(url)
+    data = response_API.text
+    return json.loads(data)
+    
 
 def getScriptsFromFile(path):
     file = open(path, 'r')
@@ -63,9 +70,17 @@ def main():
         
         cur.execute(testcreate)
 
-        insert_script = 'INSERT INTO poksutesti (id, name, salary, dept_id) VALUES (%s, %s, %s, %s)'
+        data = getFromLocation(config.get('url','test'))
 
-        insert_value = (2, 'abd', 12000, 'D1')
+        insert_script = 'INSERT INTO address (a_id, name, full_address, country_code, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING'
+        
+        for d in data["activities"]:
+            cur.execute(insert_script, (d["address"]["guid"], 
+                                        d["address"]["name"],
+                                        d["address"]["full_address"],
+                                        d["address"]["country_code"],
+                                        d["address"]["latitude"],
+                                        d["address"]["longitude"],))
 
         conn.commit()
 
