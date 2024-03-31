@@ -1,24 +1,11 @@
 import psycopg2
 import psycopg2.extras
 import configparser
-import requests
-import json
 from termcolor import colored
 
+from util import getFromLocation, getScriptsFromFile
+
 configFilePath = './config.ini'
-
-def getFromLocation(url):
-    response_API = requests.get(url)
-    data = response_API.text
-    return json.loads(data)
-    
-
-def getScriptsFromFile(path):
-    file = open(path, 'r')
-    commands = file.read().strip('\n').split(';')
-    file.close()
-    del commands[-1]
-    return commands
 
 def main():
     config = configparser.RawConfigParser()
