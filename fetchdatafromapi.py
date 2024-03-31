@@ -3,6 +3,7 @@ import psycopg2.extras
 import configparser
 import requests
 import json
+from termcolor import colored
 
 configFilePath = './config.ini'
 
@@ -14,7 +15,7 @@ def getFromLocation(url):
 
 def getScriptsFromFile(path):
     file = open(path, 'r')
-    commands = file.read().strip("\n").split(';')
+    commands = file.read().strip('\n').split(';')
     file.close()
     del commands[-1]
     return commands
@@ -33,7 +34,7 @@ def main():
     cur  = None
 
     try:
-        print("Connecting... ≽^•⩊•^≼\n")
+        print(colored('Connecting... ≽^•⩊•^≼\n', 'light_magenta'))
 
         conn = psycopg2.connect(
             host = hostname,
@@ -47,14 +48,14 @@ def main():
 
         cur.execute('SELECT version();')
         record = cur.fetchone()
-        print(record[0], '\n')
+        print(colored(record[0], 'yellow'), '\n')
 
         dsn_p = conn.get_dsn_parameters()
 
-        print('  user:', dsn_p['user'])
-        print('    db:', dsn_p['dbname'])
-        print('  host:', dsn_p['host'])
-        print('  port:', dsn_p['port'])
+        print(colored('  user:', 'light_blue'), dsn_p['user'])
+        print(colored('    db:', 'light_blue'), dsn_p['dbname'])
+        print(colored('  host:', 'light_blue'), dsn_p['host'])
+        print(colored('  port:', 'light_blue'), dsn_p['port'])
         print('')
 
         scripts = getScriptsFromFile('./sql/create_tables.sql')
@@ -62,25 +63,48 @@ def main():
         for s in scripts:
             cur.execute(s)
 
-        testcreate = ''' CREATE TABLE IF NOT EXISTS poksutesti (
-                            id      int PRIMARY KEY,
-                            name    varchar(40) NOT NULL,
-                            salary  int,
-                            dept_id varchar(30))'''
-        
-        cur.execute(testcreate)
+        print(colored('Fetching data...\n', 'light_magenta'))
 
         data = getFromLocation(config.get('url','test'))
 
-        insert_script = 'INSERT INTO address (a_id, name, full_address, country_code, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING'
-        
-        for d in data["activities"]:
-            cur.execute(insert_script, (d["address"]["guid"], 
-                                        d["address"]["name"],
-                                        d["address"]["full_address"],
-                                        d["address"]["country_code"],
-                                        d["address"]["latitude"],
-                                        d["address"]["longitude"],))
+        insert_address = getScriptsFromFile('./sql/insert_address.sql')[0]
+        insert_event   = getScriptsFromFile('./sql/insert_event.sql')[0]
+
+        for d in data['activities']:
+            cur.execute(insert_address, (d['address'].get('guid'), 
+                                         d['address'].get('name'),
+                                         d['address'].get('full_address'),
+                                         d['address'].get('location_map_link'),
+                                         d['address'].get('country_code'),
+                                         d['address'].get('country_code_alpha_3'),
+                                         d['address'].get('latitude'),
+                                         d['address'].get('longitude'),
+                                         d['address'].get('state'),
+                                         d['address'].get('city'),
+                                         d['address'].get('country'),
+                                         d['address'].get('postal_code')))
+            
+            cur.execute(insert_event, (d.get('guid'),
+                                       d['address'].get('guid'),
+                                       d['contact_information'].get('contact_phone'),
+                                       d['contact_information'].get('contact_email'),
+                                       d['contact_information'].get('contact_website'),
+                                       d['metadata'].get('update_key'),
+                                       d.get('name'),
+                                       d.get('payment_options'),
+                                       d.get('start_datetime'),
+                                       d.get('activity_type'),
+                                       d.get('large_event_guid'),
+                                       d.get('has_registration_options'),
+                                       d.get('has_registration_skus'),
+                                       d.get('league_guid'),
+                                       d.get('activity_format'),
+                                       d.get('status'),
+                                       d.get('tags'),
+                                       False,
+                                       d.get('pokemon_url')
+
+            ))
 
         conn.commit()
 
@@ -93,5 +117,5 @@ def main():
         if cur != None:
             cur.close()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

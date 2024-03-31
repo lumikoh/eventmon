@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS event (
     l_id                varchar(40),
     format              varchar(30),
     status              varchar(30),
-    registration_time   timestamp,
+    tags                varchar(30)[],
+    in_calendar         boolean NOT NULL,
+    pokemon_url         varchar(150),
     
 
     FOREIGN KEY (a_id)
