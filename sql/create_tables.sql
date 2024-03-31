@@ -30,9 +30,16 @@ CREATE TABLE IF NOT EXISTS event (
     format              varchar(30),
     status              varchar(30),
     tags                varchar(30)[],
-    in_calendar         boolean NOT NULL,
     pokemon_url         varchar(150),
     
 
     FOREIGN KEY (a_id)
         REFERENCES address (a_id));
+
+CREATE TABLE IF NOT EXISTS calendar_status (
+    e_id                varchar(40) PRIMARY KEY,
+    in_calendar         boolean NOT NULL,
+    country_code        varchar(3) NOT NULL,
+
+    FOREIGN KEY (e_id)
+        REFERENCES event (e_id));

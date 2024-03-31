@@ -69,6 +69,7 @@ def main():
 
         insert_address = getScriptsFromFile('./sql/insert_address.sql')[0]
         insert_event   = getScriptsFromFile('./sql/insert_event.sql')[0]
+        insert_calendar_status = getScriptsFromFile('./sql/insert_calendar_status.sql')[0]
 
         for d in data['activities']:
             cur.execute(insert_address, (d['address'].get('guid'), 
@@ -101,10 +102,11 @@ def main():
                                        d.get('activity_format'),
                                        d.get('status'),
                                        d.get('tags'),
-                                       False,
-                                       d.get('pokemon_url')
-
-            ))
+                                       d.get('pokemon_url')))
+            
+            cur.execute(insert_calendar_status, (d.get('guid'),
+                                                 False,
+                                                 d['address'].get('country_code')))
 
         conn.commit()
 
