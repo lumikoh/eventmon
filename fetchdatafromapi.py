@@ -5,6 +5,13 @@ from bs4 import BeautifulSoup
 
 configFilePath = './config.ini'
 
+def getScriptsFromFile(path):
+    file = open(path, 'r')
+    commands = file.read().strip("\n").split(';')
+    file.close()
+    del commands[-1]
+    return commands
+
 def main():
     config = configparser.RawConfigParser()
     config.read_file(open(configFilePath))
@@ -43,6 +50,11 @@ def main():
         print('  port:', dsn_p['port'])
         print('')
 
+        scripts = getScriptsFromFile('./sql/create_tables.sql')
+
+        for s in scripts:
+            cur.execute(s)
+
         testcreate = ''' CREATE TABLE IF NOT EXISTS poksutesti (
                             id      int PRIMARY KEY,
                             name    varchar(40) NOT NULL,
@@ -54,8 +66,6 @@ def main():
         insert_script = 'INSERT INTO poksutesti (id, name, salary, dept_id) VALUES (%s, %s, %s, %s)'
 
         insert_value = (2, 'abd', 12000, 'D1')
-
-        cur.execute(insert_script, insert_value)
 
         conn.commit()
 
