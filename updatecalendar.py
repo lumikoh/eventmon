@@ -16,6 +16,8 @@ def main():
     hostname = config.get('db', 'hostname')
     database = config.get('db', 'database')
     port     = config.get('db', 'port'    )
+    
+    countries = config.get('others', 'countries')
 
     conn = None
     cur  = None
@@ -47,7 +49,7 @@ def main():
 
         get_by_country = getScriptsFromFile('./query/get_by_country.sql')[0]
 
-        cur.execute(get_by_country, "FI")
+        cur.execute(get_by_country, "US")
 
     except Exception as error:
         print(error)
