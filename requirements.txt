@@ -1,0 +1,5 @@
+psycopg2
+requests
+termcolor
+google-auth-oauthlib
+google-api-python-client
