@@ -3,7 +3,7 @@ import psycopg2.extras
 import configparser
 from termcolor import colored
 
-from util import getScriptsFromFile
+from src.util import getScriptsFromFile
 
 configFilePath = './config.ini'
 
@@ -45,7 +45,7 @@ def main():
         print(colored('  port:', 'light_blue'), dsn_p['port'])
         print('')
 
-        get_by_country = getScriptsFromFile('./sql/get_by_country.sql')[0]
+        get_by_country = getScriptsFromFile('./query/get_by_country.sql')[0]
 
         cur.execute(get_by_country, "FI")
 

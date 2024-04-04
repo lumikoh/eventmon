@@ -3,7 +3,7 @@ import psycopg2.extras
 import configparser
 from termcolor import colored
 
-from util import getFromLocation, getScriptsFromFile
+from src.util import getFromLocation, getScriptsFromFile
 
 configFilePath = './config.ini'
 
@@ -45,7 +45,7 @@ def main():
         print(colored('  port:', 'light_blue'), dsn_p['port'])
         print('')
 
-        scripts = getScriptsFromFile('./sql/create_tables.sql')
+        scripts = getScriptsFromFile('./query/create_tables.sql')
 
         for s in scripts:
             cur.execute(s)
@@ -54,9 +54,9 @@ def main():
 
         data = getFromLocation(config.get('url','test'))
 
-        insert_address = getScriptsFromFile('./sql/insert_address.sql')[0]
-        insert_event   = getScriptsFromFile('./sql/insert_event.sql')[0]
-        insert_calendar_status = getScriptsFromFile('./sql/insert_calendar_status.sql')[0]
+        insert_address = getScriptsFromFile('./query/insert_address.sql')[0]
+        insert_event   = getScriptsFromFile('./query/insert_event.sql')[0]
+        insert_calendar_status = getScriptsFromFile('./query/insert_calendar_status.sql')[0]
 
         for d in data['activities']:
             cur.execute(insert_address, (d['address'].get('guid'), 

@@ -1,6 +1,6 @@
 import json
 import smtplib
-from cal_setup import get_calendar_service
+from src.cal_setup import get_calendar_service
 import datetime
 
 
